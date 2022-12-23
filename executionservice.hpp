@@ -158,7 +158,7 @@ void AlgoExecutionToExecutionListener<T>::ProcessAdd(AlgoExecution<T>& _data)
 	service->ExecuteOrder(*execution_order);
 }
 
-// do nothing here (not required)
+// do nothing for these methods (not required)
 template<typename T>
 void AlgoExecutionToExecutionListener<T>::ProcessRemove(AlgoExecution<T>& _data) {}
 

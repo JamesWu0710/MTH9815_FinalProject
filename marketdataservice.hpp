@@ -383,7 +383,7 @@ void MarketDataConnector<T>::Subscribe(ifstream& _data)
 	while (getline(_data, line))
 	{
 		string _productId;
-		vector<string> _cells = lineToCells(line);
+		vector<string> _cells = LineToCells(line);
 
 		// process data
 		_productId = _cells[0];

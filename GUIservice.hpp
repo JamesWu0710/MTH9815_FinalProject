@@ -229,6 +229,7 @@ void GUIToPricingListener<T>::ProcessAdd(Price<T>& _data)
 	service->OnMessage(_data);
 }
 
+// do nothing for these methods (not required)
 template<typename T>
 void GUIToPricingListener<T>::ProcessRemove(Price<T>& _data) {}
 

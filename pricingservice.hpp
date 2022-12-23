@@ -209,9 +209,8 @@ void PricingConnector<T>::Subscribe(ifstream& _data)
 	string line;
 	while (getline(_data, line))
 	{
-		auto cells = lineToCells(line);
+		auto cells = LineToCells(line);
 		
-
 		// fetch the corresponding data features
 		string _productId = cells[0];
 		double bid_price = StringToPrice(cells[1]);

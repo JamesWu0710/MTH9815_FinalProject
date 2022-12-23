@@ -204,8 +204,8 @@ void HistoricalDataConnector<V>::Publish(V& _data)
 	_file << GetTimeStamp() << ",";
 	
 	// ! we call the ToStrings() method to write the records into files.
-	vector<string> _strings = _data.ToStrings();
-	for (auto& s : _strings)
+	vector<string> _dataStrings = _data.ToStrings();
+	for (auto& s : _dataStrings)
 	{
 		_file << s << ",";
 	}
@@ -262,6 +262,7 @@ void HistoricalDataListener<V>::ProcessAdd(V& _data)
 	service->PersistData(_persistKey, _data);
 }
 
+// do nothing for these methods (not required)
 template<typename V>
 void HistoricalDataListener<V>::ProcessRemove(V& _data) {}
 

@@ -256,7 +256,7 @@ void TradeBookingConnector<T>::Subscribe(ifstream& _data)
 	string _line;
 	while (getline(_data, _line))
 	{
-		auto _cells = lineToCells(_line);
+		auto _cells = LineToCells(_line);
 
 		string _productId = _cells[0];
 		string _tradeId = _cells[1];
@@ -335,6 +335,7 @@ void TradeBookingToExecutionListener<T>::ProcessAdd(ExecutionOrder<T>& _data)
 	service->BookTrade(_trade);
 }
 
+// do nothing for these methods (not required)
 template<typename T>
 void TradeBookingToExecutionListener<T>::ProcessRemove(ExecutionOrder<T>& _data) {}
 

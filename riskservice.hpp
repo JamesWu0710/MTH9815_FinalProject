@@ -302,6 +302,7 @@ void RiskToPositionListener<T>::ProcessAdd(Position<T>& _data)
 	service->AddPosition(_data);
 }
 
+// do nothing for these methods (not required)
 template<typename T>
 void RiskToPositionListener<T>::ProcessRemove(Position<T>& _data) {}
 

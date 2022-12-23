@@ -152,6 +152,7 @@ void StreamingToAlgoStreamingListener<T>::ProcessAdd(AlgoStream<T>& _data)
 	service->PublishPrice(*_priceStream);
 }
 
+// do nothing for these methods (not required)
 template<typename T>
 void StreamingToAlgoStreamingListener<T>::ProcessRemove(AlgoStream<T>& _data) {}
 

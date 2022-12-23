@@ -349,7 +349,7 @@ void AlgoStreamingToPricingListener<T>::ProcessAdd(Price<T>& _data)
 	service->AlgoPublishPrice(_data);
 }
 
-// no implementation (not required)
+// do nothing for these methods (not required)
 template<typename T>
 void AlgoStreamingToPricingListener<T>::ProcessRemove(Price<T>& _data) {}
 

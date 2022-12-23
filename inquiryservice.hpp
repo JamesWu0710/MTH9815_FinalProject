@@ -239,7 +239,7 @@ void InquiryService<T>::OnMessage(Inquiry<T>& _data)
 		connector->Publish(_data);
 	}
 
-	// QUOTED ---> DONE
+	// QUOTED --> DONE
 	if (_state == QUOTED) {
 		_data.SetState(DONE);
 		inquiries[_data.GetInquiryId()] = _data;
@@ -348,7 +348,7 @@ void InquiryConnector<T>::Subscribe(ifstream& _data)
 	string _line;
 	while (getline(_data, _line))
 	{
-		auto _cells = lineToCells(_line);
+		auto _cells = LineToCells(_line);
 
 		string _inquiryId = _cells[0];
 		string _productId = _cells[1];

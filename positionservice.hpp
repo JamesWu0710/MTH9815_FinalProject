@@ -276,7 +276,7 @@ void PositionToTradeBookingListener<T>::ProcessAdd(Trade<T>& _data)
 	service->AddTrade(_data);
 }
 
-// keep empty, not required.
+// do nothing for these methods (not required)
 template<typename T>
 void PositionToTradeBookingListener<T>::ProcessRemove(Trade<T>& _data) {}
 
