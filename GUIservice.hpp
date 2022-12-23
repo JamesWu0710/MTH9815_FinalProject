@@ -182,8 +182,8 @@ void GUIConnector<T>::Publish(Price<T>& _data)
 		ofstream _file;
 		_file.open("gui.txt", ios::app);
 
+		// update the information into GUI to keep records.
 		_file << GetTimeStamp() << ",";
-
 		for (auto& s : _data.ToStrings())
 		{
 			_file << s << ",";
@@ -193,10 +193,7 @@ void GUIConnector<T>::Publish(Price<T>& _data)
 }
 
 template<typename T>
-void GUIConnector<T>::Subscribe(ifstream& _data)
-{
-	return;
-}
+void GUIConnector<T>::Subscribe(ifstream& _data) {}
 /*GUI Service listener on the BondPricingService class
 * Update the information upon receiving message from the pricers
 */

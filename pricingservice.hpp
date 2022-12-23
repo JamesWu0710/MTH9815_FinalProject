@@ -21,10 +21,9 @@ class Price
 {
 
 public:
-
 	// ctor for a price
 	Price() = default;
-	Price(const T& _product, double _mid, double _bidOfferSpread);
+	Price(const T & _product, double _mid, double _bidOfferSpread);
 
 	// Get the product
 	const T& GetProduct() const;
@@ -35,9 +34,10 @@ public:
 	// Get the bid/offer spread around the mid
 	double GetBidOfferSpread() const;
 
-	// Convert the information into strings,easy to store
+	// Change attributes to strings
 	vector<string> ToStrings() const;
 private:
+
 	T product;
 	double mid;
 	double bidOfferSpread;
@@ -144,9 +144,7 @@ Price<T>& PricingService<T>::GetData(string _key)
 template<typename T>
 void PricingService<T>::OnMessage(Price<T>& _data)
 {
-	std::cout << _data.GetProduct().GetProductId() << std::endl;
 	prices[_data.GetProduct().GetProductId()] = _data;
-	std::cout << _data.GetProduct().GetProductId() << std::endl;
 
 	for (auto& listener : listeners) {
 		listener->ProcessAdd(_data);
@@ -225,7 +223,6 @@ void PricingConnector<T>::Subscribe(ifstream& _data)
 		Price<T> _price(_product, mid_price, spread);
 
 		// update the generated price Data to the service.
-		std::cout << bid_price << ", " << offer_price << std::endl;
 		service->OnMessage(_price);
 	}
 }

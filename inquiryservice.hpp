@@ -352,17 +352,26 @@ void InquiryConnector<T>::Subscribe(ifstream& _data)
 
 		string _inquiryId = _cells[0];
 		string _productId = _cells[1];
-		Side _side;
-		if (_cells[2] == "BUY") _side = BUY;
-		else if (_cells[2] == "SELL") _side = SELL;
+		Side _side = _cells[2] == "BUY" ? BUY : SELL;
 		long _quantity = stol(_cells[3]);
 		double _price = StringToPrice(_cells[4]);
 		InquiryState _state;
-		if (_cells[5] == "RECEIVED") _state = RECEIVED;
-		else if (_cells[5] == "QUOTED") _state = QUOTED;
-		else if (_cells[5] == "DONE") _state = DONE;
-		else if (_cells[5] == "REJECTED") _state = REJECTED;
-		else if (_cells[5] == "CUSTOMER_REJECTED") _state = CUSTOMER_REJECTED;
+		if (_cells[5] == "RECEIVED"){
+			_state = RECEIVED;
+		}
+		else if (_cells[5] == "QUOTED") {
+			_state = QUOTED;
+		}
+		else if (_cells[5] == "DONE") {
+			_state = DONE;
+		}
+		else if (_cells[5] == "REJECTED") {
+			_state = REJECTED;
+		}
+		else if (_cells[5] == "CUSTOMER_REJECTED") {
+			_state = CUSTOMER_REJECTED;
+		}
+
 		T _product = FetchBond(_productId);
 		Inquiry<T> _inquiry(_inquiryId, _product, _side, _quantity, _price, _state);
 		service->OnMessage(_inquiry);

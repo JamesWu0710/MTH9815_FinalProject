@@ -262,9 +262,7 @@ void TradeBookingConnector<T>::Subscribe(ifstream& _data)
 		double _price = StringToPrice(_cells[2]);
 		string _book = _cells[3];
 		long _quantity = stol(_cells[4]);
-		Side _side;
-		if (_cells[5] == "BUY") _side = BUY;
-		else if (_cells[5] == "SELL") _side = SELL;
+		Side _side = _cells[5] == "BUY" ? BUY : SELL;
 		T _product = FetchBond(_productId);
 		Trade<T> _trade(_product, _tradeId, _price, _book, _quantity, _side);
 		service->OnMessage(_trade);
