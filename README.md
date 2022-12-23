@@ -10,6 +10,10 @@ This part is adopted from Breman's project requirements.
 - The idea is to connection different processes: **Listeners, Connectors that Subscribe and Publish**. We have a new definition of a Service in soa.hpp, with the concept of a ServiceListener and Connector also defined. A ServiceListener is a listener to events on the service where data is added to the service, updated on the service, or removed from the service. A Connector is a class that flows data into the Service from some connectivity source (e.g. a socket, file, etc) via the Service.OnMessage() method. The Publish() method on the Connector publishes data to the connectivity source and can be invoked from a Service. Some Connectors are publish-only that do not invoke Service.OnMessage(). Some Connectors are subscribe-only where Publish() does nothing. Other Connectors can do both publish and subscribe.
 
 # Project Design Idea
+- To create different Bond services, we first create the template classes that accepts a geenral product defined in product.hpp
+- Then in main.cpp, we specify the product type to be Bonds. This allows a more **generic framework that can be transplanted to other products easily**.
+- Regarding data, we generate the data according to the rules defined in the project requirements. This is mainly done in datageneration.hpp, and the input data can be generated if we call the Initialize method in the main file.
+
 
 # How to run the codes?
 - To compile it using g++, we can follow **g++ -std=c++17 main.cpp -o test -I C:/boost/include/boost-1_80 -L C:/boost/lib -lws2_32 -lwsock32**. Remember to specify your paths of the boost library! Then, run test.exe to see the operations.
