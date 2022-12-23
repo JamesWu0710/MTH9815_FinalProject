@@ -3,6 +3,7 @@
  * Defines the data types and Service for positions.
  *
  * @author Breman Thuraisingham
+ * @Co-author: James Wu
  */
 #ifndef POSITION_SERVICE_HPP
 #define POSITION_SERVICE_HPP
@@ -24,23 +25,100 @@ class Position
 
 public:
 
-  // ctor for a position
-  Position(const T &_product);
+	// ctor for a position
+	Position() = default;
+	Position(const T& _product);
 
-  // Get the product
-  const T& GetProduct() const;
+	// Get the product
+	const T& GetProduct() const;
 
-  // Get the position quantity
-  long GetPosition(string &book);
+	// Get the position quantity
+	long GetPosition(string& book);
 
-  // Get the aggregate position
-  long GetAggregatePosition();
+	// Get the positions over books
+	map<string, long> GetPositions();
+
+	// Set the position quantity
+	void AddPosition(string& _book, long _position);
+
+	// Get the aggregate position
+	long GetAggregatePosition();
+
+	// Save attributes as strings
+	vector<string> ToStrings() const;
 
 private:
-  T product;
-  map<string,long> positions;
+
+	T product;
+	map<string, long> positions;
 
 };
+
+template<typename T>
+Position<T>::Position(const T& _product) :
+	product(_product) {}
+
+template<typename T>
+const T& Position<T>::GetProduct() const
+{
+	return product;
+}
+
+template<typename T>
+long Position<T>::GetPosition(string& book)
+{
+	return positions[book];
+}
+
+template<typename T>
+map<string, long> Position<T>::GetPositions()
+{
+	return positions;
+}
+
+template<typename T>
+void Position<T>::AddPosition(string& _book, long _position)
+{
+	positions[_book] += _position;
+}
+
+template<typename T>
+long Position<T>::GetAggregatePosition()
+{
+	long aggregatePosition = 0;
+	for (auto& p : positions) {
+		aggregatePosition += p.second;
+	}
+	return aggregatePosition;
+}
+
+template<typename T>
+vector<string> Position<T>::ToStrings() const
+{
+	string _product = product.GetProductId();
+	vector<string> _positions;
+
+	// storing the market and corresponding positions
+	for (auto& p : positions)
+	{
+		string _book = p.first;
+		string _position = to_string(p.second);
+		_positions.push_back(_book);
+		_positions.push_back(_position);
+	}
+
+	vector<string> _strings;
+	_strings.push_back(_product);
+	_strings.insert(_strings.end(), _positions.begin(), _positions.end());
+	return _strings;
+}
+
+
+/**
+* Pre-declearations to avoid errors.
+*/
+template<typename T>
+class PositionToTradeBookingListener;
 
 /**
  * Position Service to manage positions across multiple books and secruties.
@@ -48,39 +126,162 @@ private:
  * Type T is the product type.
  */
 template<typename T>
-class PositionService : public Service<string,Position <T> >
+class PositionService : public Service<string, Position <T> >
 {
 
 public:
+	// Ctor
+	PositionService();
 
-  // Add a trade to the service
-  virtual void AddTrade(const Trade<T> &trade) = 0;
+	// Get data on our service given a key
+	Position<T>& GetData(string _key);
+
+	// The callback that a Connector should invoke for any new or updated data
+	void OnMessage(Position<T>& _data);
+
+	// Add a listener to the Service for callbacks on add, remove, and update events for data to the Service
+	void AddListener(ServiceListener<Position<T>>* _listener);
+
+	// Get all listeners on the Service
+	const vector<ServiceListener<Position<T>>*>& GetListeners() const;
+
+	// Get the listener of the service
+	PositionToTradeBookingListener<T>* GetListener();
+
+	// Add a trade to the service
+	virtual void AddTrade(const Trade<T>& _trade);
+
+private:
+
+	map<string, Position<T>> positions;
+	vector<ServiceListener<Position<T>>*> listeners;
+	PositionToTradeBookingListener<T>* listener;
+};
+
+template<typename T>
+PositionService<T>::PositionService()
+{
+	positions = map<string, Position<T>>();
+	listeners = vector<ServiceListener<Position<T>>*>();
+	listener = new PositionToTradeBookingListener<T>(this);
+}
+
+template<typename T>
+Position<T>& PositionService<T>::GetData(string _key)
+{
+	return positions[_key];
+}
+
+template<typename T>
+void PositionService<T>::OnMessage(Position<T>& _data)
+{
+	string _id = _data.GetProduct().GetProductId();
+	positions[_id] = _data;
+}
+
+template<typename T>
+void PositionService<T>::AddListener(ServiceListener<Position<T>>* _listener)
+{
+	listeners.push_back(_listener);
+}
+
+template<typename T>
+PositionToTradeBookingListener<T>* PositionService<T>::GetListener()
+{
+	return listener;
+}
+
+template<typename T>
+const vector<ServiceListener<Position<T>>*>& PositionService<T>::GetListeners() const
+{
+	return listeners;
+}
+
+// core function
+// add a trade into the system
+template<typename T>
+void PositionService<T>::AddTrade(const Trade<T>& _trade)
+{
+	T _product = _trade.GetProduct();
+	string _productId = _product.GetProductId();
+	double _price = _trade.GetPrice();
+	string _book = _trade.GetBook();
+	long _quantity = _trade.GetQuantity();
+	Side _side = _trade.GetSide();
+
+	Position<T> _positionTo(_product);
+	if (_side == BUY) {
+		_positionTo.AddPosition(_book, _quantity);
+	}
+	if (_side == SELL) {
+		_positionTo.AddPosition(_book, -_quantity);
+	}
+	
+	// update the book
+	Position<T> _positionFrom = positions[_productId];
+	map <string, long> _positionMap = _positionFrom.GetPositions();
+	for (auto& p : _positionMap)
+	{
+		_book = p.first;
+		_quantity = p.second;
+		_positionTo.AddPosition(_book, _quantity);
+	}
+	positions[_productId] = _positionTo;
+
+	// add back into the system.
+	for (auto& l : listeners)
+	{
+		l->ProcessAdd(_positionTo);
+	}
+}
+
+
+/**
+* Position Service Listener
+* subscribing data from trading_booking_service to position_service.
+* Type T is the product type.
+*/
+template<typename T>
+class PositionToTradeBookingListener : public ServiceListener<Trade<T>>
+{
+
+private:
+
+	PositionService<T>* service;
+
+public:
+
+	// ctor
+	PositionToTradeBookingListener(PositionService<T>* _service);
+
+	// Listener callback to process an add event to the Service
+	void ProcessAdd(Trade<T>& _data);
+
+	// Listener callback to process a remove event to the Service
+	void ProcessRemove(Trade<T>& _data);
+
+	// Listener callback to process an update event to the Service
+	void ProcessUpdate(Trade<T>& _data);
 
 };
 
 template<typename T>
-Position<T>::Position(const T &_product) :
-  product(_product)
+PositionToTradeBookingListener<T>::PositionToTradeBookingListener(PositionService<T>* _service)
 {
+	service = _service;
 }
 
 template<typename T>
-const T& Position<T>::GetProduct() const
+void PositionToTradeBookingListener<T>::ProcessAdd(Trade<T>& _data)
 {
-  return product;
+	service->AddTrade(_data);
 }
 
+// keep empty, not required.
 template<typename T>
-long Position<T>::GetPosition(string &book)
-{
-  return positions[book];
-}
+void PositionToTradeBookingListener<T>::ProcessRemove(Trade<T>& _data) {}
 
 template<typename T>
-long Position<T>::GetAggregatePosition()
-{
-  // No-op implementation - should be filled out for implementations
-  return 0;
-}
+void PositionToTradeBookingListener<T>::ProcessUpdate(Trade<T>& _data) {}
 
 #endif

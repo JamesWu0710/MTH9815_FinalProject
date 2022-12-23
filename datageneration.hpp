@@ -10,10 +10,12 @@
 #include <chrono>
 #include <ctime>
 #include <map>
+#include <thread>
 #include <random>
 #include "products.hpp"
 #include "utilityfunctions.hpp"
 #include "tradebookingservice.hpp"
+#include "marketdataservice.hpp"
 #include <boost/date_time/gregorian/gregorian.hpp>
 
 using namespace std;
@@ -74,7 +76,7 @@ void GenerateProductPrice(string _id, int _size, ofstream& file) {
 	}
 }
 
-void GeneratePricesAll() {
+void GenerateAllPrices() {
 	const string save_path("prices.txt");
 	ofstream file(save_path);
 
@@ -94,24 +96,62 @@ void GenerateProductMarketData(string _id, int _size, ofstream& file) {
 	double UPPER = 101.0 - mintick;
 	bool up = true;
 	double central_price = LOW;
-	return;
+
+	// we use size / 10 since for each spread case, we will create 5 bids and 5 offers
+	for (int i = 0; i < _size / 10; i++) {
+		double _spread = spreadVec[i % 4] * 0.5;
+		double _top_buy = central_price - _spread;
+		double _bottom_offer = central_price + _spread;
+		for (int j = 0; j <= 4; j++) {
+			double _buy = _top_buy - (double)j * mintick;
+			double _sell = _bottom_offer + (double)j * mintick;
+			int _volume = volumeVec[j % 5];
+
+			file << _id << "," << PriceToString(_buy) << "," << _volume << "," << "BID" << std::endl;
+			file << _id << "," << PriceToString(_sell) << "," << _volume << "," << "OFFER" << std::endl;
+		}
+		// central price movement
+		if (central_price == UPPER) {
+			up = false;
+		}
+		if (central_price == LOW) {
+			up = true;
+		}
+
+		central_price = up ? central_price + mintick : central_price - mintick;
+	}
+}
+
+void GenerateAllMarketData() {
+	const string save_path("marketdata.txt");
+	ofstream file(save_path);
+
+	const int orderSize = 1000000;
+	for (const auto& [mat, bond] : bondMap) {
+		std::cout << "Generating market data for security " << bond.first << " ...\n";
+		GenerateProductMarketData(bond.first, orderSize, file);
+	}
 }
 
 // generate the trade data
 // generaet price between 99 and 101, we use some randomness
 void GenerateProductTradeData(string _id, int _size, ofstream& file) {
-	srand(time(0));
 	double mintick = 1.0 / 256.0;
 	vector<int> volumeVec{ 10000000,20000000,30000000,40000000,50000000 };
+
+	thread_local random_device rd;
+	thread_local mt19937_64 gen(rd());
+	thread_local uniform_real_distribution<double> d(0.0, 1.0);
+
 	for (int i = 0; i < _size; i++) {
+		int _n = (int)(d(gen) * 512);
 		Side _side = (i % 2) ? BUY : SELL;
 		string _string_side = _side == BUY ? "BUY" : "SELL";
 		int _volume = volumeVec[i % 5];
-		int _numTicks = rand() % 512;
-		string _book_name = "TRSY" + to_string(rand() % 3 + 1);
-		double _price = 99.0 + mintick * (double)_numTicks;
-
-		file << _id << "," << GenerateTradingId() << "," << PriceToString(_price) << "," << _book_name << "," << _volume << "," << _string_side << std::endl;
+		string _book_name = "TRSY" + to_string(i % 3 + 1);
+		double _price = 99.0 + mintick * (double)_n;
+		string trading_id = GenerateTradingId(12);
+		file << _id << "," << trading_id << "," << PriceToString(_price) << "," << _book_name << "," << _volume << "," << _string_side << std::endl;
 	}
 }
 
@@ -122,6 +162,36 @@ void GenerateAllTradeData() {
 	for (const auto& [mat, bond] : bondMap) {
 		std::cout << "Generating trades for security " << bond.first << " ...\n";
 		GenerateProductTradeData(bond.first, tradeSize, file);
+	}
+}
+
+void GenerateProductInquiryData(string _id, int _size, ofstream& file) {
+	double mintick = 1.0 / 256.0;
+	vector<int> volumeVec{ 10000000,20000000,30000000,40000000,50000000 };
+
+	thread_local random_device rd;
+	thread_local mt19937_64 gen(rd());
+	thread_local uniform_real_distribution<double> d(0.0, 1.0);
+
+	for (int i = 0; i < _size; i++) {
+		int _n = (int)(d(gen) * 512);
+		string _string_side = (i % 2) ? "BUY" : "SELL";
+		int _volume = volumeVec[i % 5];
+		int _numTicks = rand() % 512;
+		double _price = 99.0 + mintick * (double)_n;
+		string _inquiry_id = GenerateTradingId(9);
+		_inquiry_id = "INQ" + _inquiry_id;		// indicating it's "INQUIRY"
+		file << _inquiry_id << "," << _id << "," << _string_side << "," << _volume << "," << PriceToString(_price) << "," << "RECEIVED" << std::endl;
+	}
+}
+
+void GenerateAllInquiryData() {
+	const string save_path("inquiries.txt");
+	ofstream file(save_path);
+	const int inqSize = 10;
+	for (const auto& [mat, bond] : bondMap) {
+		std::cout << "Generating inquiries for security " << bond.first << " ...\n";
+		GenerateProductInquiryData(bond.first, inqSize, file);
 	}
 }
 

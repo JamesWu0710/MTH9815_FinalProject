@@ -1,5 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #ifndef utilityfunctions_hpp
 #define utilityfunctions_hpp
+
+
 
 #include <iostream>
 #include <string>
@@ -9,12 +13,17 @@
 #include <random>
 #include <cstdlib>
 #include <time.h>
+#include <fstream>
 #include "products.hpp"
 #include <boost/date_time/gregorian/gregorian.hpp>
 
 using namespace std;
 using namespace boost::gregorian;
 
+
+// utility function to generate uniform random
+// LCG
+// use seed (in practice will be the current time)
 double StringToPrice(const string& str_price) {
 	auto separate_pos = str_price.find('-');
 
@@ -58,6 +67,22 @@ string PriceToString(double price) {
 	return res;
 }
 
+// the function to fetch the PV01 value.
+// data calculated at December 19th, 2022
+// although not very accurate, but the scales make sense
+// data source (yield and bond price, etc): https://www.cnbc.com/quotes
+double GetPV01(string _id) {
+	map<string, double> PV01Map({
+		{"91282CFX4", 0.01967211},
+		{"91282CFW6", 0.028849852},
+		{"91282CFZ9", 0.048555605 },
+		{"91282CFY2", 0.068303332 },
+		{"91282CFV8", 0.08071955 },
+		{"912810TM0", 0.118325668 },
+		{"912810TL2", 0.185319634 } });
+	return PV01Map[_id];
+}
+
 // create the maps: <maturity, <name, maturity_date>>
 const map<int, pair<string, date>> bondMap({
 	{2, {"91282CFX4", {2024, Nov, 30}}},
@@ -68,6 +93,26 @@ const map<int, pair<string, date>> bondMap({
 	{20, {"912810TM0", {2042, Nov, 30}}},
 	{30, {"912810TL2", {2052, Nov, 15}}} });
 
+const map<string, int> bondIdMatMap({
+	{"91282CFX4", 2},
+	{"91282CFW6", 3},
+	{"91282CFZ9", 5 },
+	{"91282CFY2", 7 },
+	{"91282CFV8", 10 },
+	{"912810TM0", 20 },
+	{"912810TL2", 30 }});
+
+// the map between bond id and their coupons, in order to fetch the corresponding coupon rate.
+// data from internet
+const map<string, double> bondIdCouponMap({
+	{"91282CFX4", 0.04500},
+	{"91282CFW6", 0.04000},
+	{"91282CFZ9", 0.03875},
+	{"91282CFY2", 0.03875},
+	{"91282CFV8", 0.04125},
+	{"912810TM0", 0.04000},
+	{"912810TL2", 0.04000}});
+
 // fetch contract names by maturity
 string FetchCusipId(int mat) {
 	string id = bondMap.at(mat).first;
@@ -77,7 +122,12 @@ string FetchCusipId(int mat) {
 Bond FetchBond(int mat) {
 	string id = bondMap.at(mat).first;
 	string ticker = "US" + to_string(mat) + "Y";
-	return Bond(id, CUSIP, ticker, 0.0, bondMap.at(mat).second);
+	return Bond(id, CUSIP, ticker, bondIdCouponMap.at(id), bondMap.at(mat).second);
+}
+
+Bond FetchBond(string _id) {
+	int _mat = bondIdMatMap.at(_id);
+	return FetchBond(_mat);
 }
 
 // utility function that fetches time
@@ -102,24 +152,46 @@ string GetTimeStamp() {
 
 	char time_string[24];
 	strftime(time_string, 24, "%F %T", localtime(&curr_time_t));
-	return (string)time_string + '.' + m_seconds;
+	return static_cast<string>(time_string) + "." + m_seconds;
+}
+
+// utility function that fetches current millisecond
+long GetMillisecond()
+{
+	auto timePoint = chrono::system_clock::now();
+	auto sec = chrono::time_point_cast<chrono::seconds>(timePoint);
+	auto millisec = chrono::duration_cast<chrono::milliseconds>(timePoint - sec);
+	long _millisecCount = static_cast<long>(millisec.count());
+	return _millisecCount;
 }
 
 // utility function to generate random trading Ids
 string GenerateTradingId(int length = 12)
 {
-	srand(time(0));
-	string _base = "QAZWSXEDCRFVTGBYHNUJMIKOLP1472583690";
-	vector<int> _randoms;
+	thread_local random_device rd;
+	thread_local mt19937_64 gen(rd());
+	thread_local uniform_real_distribution<double> d(0.0, 1.0);
+
+	string _base = "ZAQWSXCDERFVBGTYHNMJUIKLOP1472583690";
+	string ID = "";
 	for (int i = 0; i < length; i++) {
-		_randoms.push_back(rand() % 36);
+		double _r = d(gen);
+		ID.push_back(_base[(int)(_r * 36)]);
 	}
-	string _id = "";
-	for (auto& r : _randoms)
+	return ID;
+}
+
+// utility function to separate the line
+// deliminator is ","
+std::vector<string> lineToCells(string line) {
+	stringstream lineStream(line);
+	string cell;
+	vector<string> cells;
+	while (getline(lineStream, cell, ','))
 	{
-		_id.push_back(_base[r]);
+		cells.push_back(cell);
 	}
-	return _id;
+	return cells;
 }
 
 #endif // !utilityfunctions_hpp

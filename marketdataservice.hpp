@@ -28,23 +28,23 @@ class Order
 
 public:
 
-  // ctor for an order
-  Order() = default;
-  Order(double _price, long _quantity, PricingSide _side);
+	// ctor for an order
+	Order() = default;
+	Order(double _price, long _quantity, PricingSide _side);
 
-  // Get the price on the order
-  double GetPrice() const;
+	// Get the price on the order
+	double GetPrice() const;
 
-  // Get the quantity on the order
-  long GetQuantity() const;
+	// Get the quantity on the order
+	long GetQuantity() const;
 
-  // Get the side on the order
-  PricingSide GetSide() const;
+	// Get the side on the order
+	PricingSide GetSide() const;
 
 private:
-  double price;
-  long quantity;
-  PricingSide side;
+	double price;
+	long quantity;
+	PricingSide side;
 
 };
 
@@ -56,18 +56,18 @@ class BidOffer
 
 public:
 
-  // ctor for bid/offer
-  BidOffer(const Order &_bidOrder, const Order &_offerOrder);
+	// ctor for bid/offer
+	BidOffer(const Order& _bidOrder, const Order& _offerOrder);
 
-  // Get the bid order
-  const Order& GetBidOrder() const;
+	// Get the bid order
+	const Order& GetBidOrder() const;
 
-  // Get the offer order
-  const Order& GetOfferOrder() const;
+	// Get the offer order
+	const Order& GetOfferOrder() const;
 
 private:
-  Order bidOrder;
-  Order offerOrder;
+	Order bidOrder;
+	Order offerOrder;
 
 };
 
@@ -81,25 +81,26 @@ class OrderBook
 
 public:
 
-  // ctor for the order book
-  OrderBook(const T &_product, const vector<Order> &_bidStack, const vector<Order> &_offerStack);
+	// ctor for the order book
+	OrderBook() = default;
+	OrderBook(const T& _product, const vector<Order>& _bidStack, const vector<Order>& _offerStack);
 
-  // Get the product
-  const T& GetProduct() const;
+	// Get the product
+	const T& GetProduct() const;
 
-  // Get the bid stack
-  const vector<Order>& GetBidStack() const;
+	// Get the bid stack
+	const vector<Order>& GetBidStack() const;
 
-  // Get the offer stack
-  const vector<Order>& GetOfferStack() const;
+	// Get the offer stack
+	const vector<Order>& GetOfferStack() const;
 
-  // Get the best bid/offer order (the ones at the top)
-  const BidOffer& GetBidOffer() const;
+	// Get the best bid/offer order (the ones at the top)
+	const BidOffer& GetBidOffer() const;
 
 private:
-  T product;
-  vector<Order> bidStack;
-  vector<Order> offerStack;
+	T product;
+	vector<Order> bidStack;
+	vector<Order> offerStack;
 };
 
 // pre-declaration of connector, to avoid errors
@@ -112,109 +113,109 @@ class MarketDataConnector;
  * Type T is the product type.
  */
 template<typename T>
-class MarketDataService : public Service<string,OrderBook <T> >
+class MarketDataService : public Service<string, OrderBook <T> >
 {
 
 public:
-  // ctor
-  MarketDataService();
-  ~MarketDataService();
+	// ctor
+	MarketDataService();
+	~MarketDataService();
 
-  // fetch orderbook with given product id
-  OrderBook<T>& GetOrderBook(const string& _id);
+	// fetch orderbook with given product id
+	OrderBook<T>& GetData(string _key);
 
-  // call back function for the connector
-  void OnMessage(OrderBook<T>& _data);
+	// call back function for the connector
+	void OnMessage(OrderBook<T>& _data);
 
-  // add listener to the service
-  void AddListener(ServiceListener<OrderBook<T>>* listener);
+	// add listener to the service
+	void AddListener(ServiceListener<OrderBook<T>>* listener);
 
-  // fetch the active listeners on the service
-  const vector<ServiceListener<OrderBook<T>>*>& GetListeners() const;
+	// fetch the active listeners on the service
+	const vector<ServiceListener<OrderBook<T>>*>& GetListeners() const;
 
-  // fetch the connector
-  MarketDataConnector<T>* GetConnector();
+	// fetch the connector
+	MarketDataConnector<T>* GetConnector();
 
-  // fetch the current orderbook depth
-  int GetOrderBookDepth() const;
+	// fetch the current orderbook depth
+	int GetOrderBookDepth() const;
 
-  // Get the best bid/offer order
-  const BidOffer& GetBestBidOffer(const string &_id);
+	// Get the best bid/offer order
+	const BidOffer& GetBestBidOffer(const string& _id);
 
-  // Aggregate the order book
-  const OrderBook<T>& AggregateDepth(const string &_id);
+	// Aggregate the order book
+	const OrderBook<T>& AggregateDepth(const string& _id);
 
 private:
-  map<string, OrderBook<T>> orderBooks;
-  vector<ServiceListener<OrderBook<T>>*> listeners;
-  MarketDataConnector<T>* connector;
-  int bookDepth;
+	map<string, OrderBook<T>> orderBooks;
+	vector<ServiceListener<OrderBook<T>>*> listeners;
+	MarketDataConnector<T>* connector;
+	int bookDepth;
 };
 
 Order::Order(double _price, long _quantity, PricingSide _side)
 {
-  price = _price;
-  quantity = _quantity;
-  side = _side;
+	price = _price;
+	quantity = _quantity;
+	side = _side;
 }
 
 double Order::GetPrice() const
 {
-  return price;
-}
- 
-long Order::GetQuantity() const
-{
-  return quantity;
-}
- 
-PricingSide Order::GetSide() const
-{
-  return side;
+	return price;
 }
 
-BidOffer::BidOffer(const Order &_bidOrder, const Order &_offerOrder) :
-  bidOrder(_bidOrder), offerOrder(_offerOrder){}
+long Order::GetQuantity() const
+{
+	return quantity;
+}
+
+PricingSide Order::GetSide() const
+{
+	return side;
+}
+
+BidOffer::BidOffer(const Order& _bidOrder, const Order& _offerOrder) :
+	bidOrder(_bidOrder), offerOrder(_offerOrder) {}
 
 const Order& BidOffer::GetBidOrder() const
 {
-  return bidOrder;
+	return bidOrder;
 }
 
 const Order& BidOffer::GetOfferOrder() const
 {
-  return offerOrder;
+	return offerOrder;
 }
 
 template<typename T>
-OrderBook<T>::OrderBook(const T &_product, const vector<Order> &_bidStack, const vector<Order> &_offerStack) :
-  product(_product), bidStack(_bidStack), offerStack(_offerStack)
+OrderBook<T>::OrderBook(const T& _product, const vector<Order>& _bidStack, const vector<Order>& _offerStack) :
+	product(_product), bidStack(_bidStack), offerStack(_offerStack)
 {
 }
 
 template<typename T>
 const T& OrderBook<T>::GetProduct() const
 {
-  return product;
+	return product;
 }
 
 template<typename T>
 const vector<Order>& OrderBook<T>::GetBidStack() const
 {
-  return bidStack;
+	return bidStack;
 }
 
 template<typename T>
 const vector<Order>& OrderBook<T>::GetOfferStack() const
 {
-  return offerStack;
+	return offerStack;
 }
 
 template<typename T>
-const BidOffer &OrderBook<T>::GetBidOffer() const{
+const BidOffer& OrderBook<T>::GetBidOffer() const {
 
-  // fetch the highest bid, lowest offer
-	Order& highest_bid(bidStack[0]);
+	// fetch the highest bid, lowest offer
+	Order highest_bid(bidStack[0]);
 	double h_bid_price = highest_bid.GetPrice();
 	for (auto i = 1; i < bidStack.size(); i++) {
 		auto curr_bid = bidStack[i];
@@ -224,7 +225,7 @@ const BidOffer &OrderBook<T>::GetBidOffer() const{
 		}
 	}
 
-	Order& lowest_offer(offerStack[0]);
+	Order lowest_offer(offerStack[0]);
 	double l_offer_price = lowest_offer.GetPrice();
 	for (auto i = 1; i < offerStack.size(); i++) {
 		auto curr_offer = offerStack[i];
@@ -255,9 +256,9 @@ MarketDataService<T>::~MarketDataService()
 }
 
 template<typename T>
-OrderBook<T>& MarketDataService<T>::GetOrderBook(const string& _id)
+OrderBook<T>& MarketDataService<T>::GetData(string _key)
 {
-	return orderBooks.find(_id);
+	return orderBooks[_key];
 }
 
 template<typename T>
@@ -339,4 +340,95 @@ const OrderBook<T>& MarketDataService<T>::AggregateDepth(const string& _id) {
 //update the connectors
 /*The connectors
 When subscribe, we receive the orders from data*/
+
+template <typename T>
+class MarketDataConnector : public Connector<OrderBook<T>> {
+public:
+
+	// ctor
+	MarketDataConnector(MarketDataService<T>* _service);
+
+	// Publish data to the Connector
+	void Publish(OrderBook<T>& _data);
+
+	// Subscribe Ddata from the Connector
+	void Subscribe(ifstream& data);
+private:
+	MarketDataService<T>* service;
+};
+
+template<typename T>
+MarketDataConnector<T>::MarketDataConnector(MarketDataService<T>* _service)
+{
+	service = _service;
+}
+
+// Subscribe only! No implementation for Publish.
+template<typename T>
+void MarketDataConnector<T>::Publish(OrderBook<T>& _data) {}
+
+template<typename T>
+void MarketDataConnector<T>::Subscribe(ifstream& _data)
+{
+	// ready to process data
+	int bookDepth = service->GetOrderBookDepth();
+	int _thread = bookDepth * 2;
+	long orderCount = 0;	// keep track of total orders added
+
+	vector<Order> bidStack;
+	vector<Order> offerStack;
+	string line;
+
+	while (getline(_data, line))
+	{
+		string _productId;
+
+		stringstream _lineStream(line);
+		string cells;
+		vector<string> _cells;
+		while (getline(_lineStream, cells, ','))
+		{
+			_cells.push_back(cells);
+		}
+
+		// process data
+		_productId = _cells[0];
+		double _price = StringToPrice(_cells[1]);
+		long _quantity = stol(_cells[2]);
+
+		// convert string to SIDE
+		// assume no ill-shaped inputs
+		PricingSide side;
+		if (_cells[3] == "BID") {
+			side = BID;
+		}
+		else if (_cells[3] == "OFFER") {
+			side = OFFER;
+		}
+
+		// generate order
+		Order order(_price, _quantity, side);
+		if (side == BID) {
+			bidStack.push_back(order);
+		}
+		else {
+			offerStack.push_back(order);
+		}
+		orderCount++;
+
+		// This will trigger the OnMessage updates
+		// since both BID and ASK offers have been processed
+		if (orderCount % _thread == 0)
+		{
+			T _product = FetchBond(_productId);
+			OrderBook<T> tmpOrderBook(_product, bidStack, offerStack);
+			service->OnMessage(tmpOrderBook);
+
+			// reset, empty the stacks.
+			bidStack = vector<Order>();
+			offerStack = vector<Order>();
+		}
+	}
+}
+
 #endif

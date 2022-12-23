@@ -8,7 +8,7 @@
 #ifndef PRICING_SERVICE_HPP
 #define PRICING_SERVICE_HPP
 
-#include "datageneration.hpp"
+#include "utilityfunctions.hpp"
 #include <string>
 #include "soa.hpp"
 
@@ -23,6 +23,7 @@ class Price
 public:
 
 	// ctor for a price
+	Price() = default;
 	Price(const T& _product, double _mid, double _bidOfferSpread);
 
 	// Get the product
@@ -34,50 +35,13 @@ public:
 	// Get the bid/offer spread around the mid
 	double GetBidOfferSpread() const;
 
-	// Convert the information into strings
-	vector<string> ToString() const;
+	// Convert the information into strings,easy to store
+	vector<string> ToStrings() const;
 private:
-	const T& product;
+	T product;
 	double mid;
 	double bidOfferSpread;
 
-};
-
-// pre-declaration to avoid errors
-template<typename T>
-class PricingConnector;
-
-/**
- * Pricing Service managing mid prices and bid/offers.
- * Keyed on product identifier.
- * Type T is the product type.
- */
-template<typename T>
-class PricingService : public Service<string, Price <T> >
-{
-public:
-	PricingService();
-	~PricingService();
-
-	// fetch orderbook with given product id
-	Price<T>& GetPriceData(const string& _id);
-
-	// call back function for the connector
-	void OnMessage(Price<T>& _data);
-
-	// add listener to the service
-	void AddListener(ServiceListener<Price<T>>* listener);
-
-	// fetch the active listeners on the service
-	const vector<ServiceListener<Price<T>>*>& GetListeners() const;
-
-	// fetch the connector
-	PricingConnector<T>* GetConnector();
-
-private:
-	map<string, Price<T>> prices;
-	vector<ServiceListener<Price<T>>*> listeners;
-	PricingConnector<T>* connector;
 };
 
 template<typename T>
@@ -107,7 +71,7 @@ double Price<T>::GetBidOfferSpread() const
 }
 
 template<typename T>
-vector<string> Price<T>::ToString() const
+vector<string> Price<T>::ToStrings() const
 {
 	string _product = product.GetProductId();
 	string _mid = PriceToString(mid);
@@ -120,6 +84,46 @@ vector<string> Price<T>::ToString() const
 	return _strings;
 }
 
+/**
+* Pre-declearations to avoid errors.
+*/
+template<typename T>
+class PricingConnector;
+
+/**
+ * Pricing Service managing mid prices and bid/offers.
+ * Keyed on product identifier.
+ * Type T is the product type.
+ */
+template<typename T>
+class PricingService : public Service<string, Price <T> >
+{
+private:
+	map<string, Price<T>> prices;
+	vector<ServiceListener<Price<T>>*> listeners;
+	PricingConnector<T>* connector;
+public:
+	PricingService();
+	~PricingService();
+
+	// fetch orderbook with given product id
+	Price<T>& GetData(string _key);
+
+	// call back function for the connector
+	void OnMessage(Price<T>& _data);
+
+	// add listener to the service
+	void AddListener(ServiceListener<Price<T>>* listener);
+
+	// fetch the active listeners on the service
+	const vector<ServiceListener<Price<T>>*>& GetListeners() const;
+
+	// fetch the connector
+	PricingConnector<T>* GetConnector();
+};
+
+
+
 template<typename T>
 PricingService<T>::PricingService() :prices(), listeners(), connector()
 {
@@ -129,51 +133,102 @@ PricingService<T>::PricingService() :prices(), listeners(), connector()
 }
 
 template<typename T>
-PricingService<T>::~PricingService()
+PricingService<T>::~PricingService() {}
+
+template<typename T>
+Price<T>& PricingService<T>::GetData(string _key)
 {
-	delete connector;
+	return prices[_key];
 }
 
 template<typename T>
- Price<T>& PricingService<T>::GetPriceData(const string& _id)
+void PricingService<T>::OnMessage(Price<T>& _data)
 {
-	 return prices[_id];
+	std::cout << _data.GetProduct().GetProductId() << std::endl;
+	prices[_data.GetProduct().GetProductId()] = _data;
+	std::cout << _data.GetProduct().GetProductId() << std::endl;
+
+	for (auto& listener : listeners) {
+		listener->ProcessAdd(_data);
+	}
 }
 
- template<typename T>
- void PricingService<T>::OnMessage(Price<T>& _data)
- {
-	 string product_id = _data.GetProduct().GetProductId();
-	 prices[product_id] = _data;
+template<typename T>
+void PricingService<T>::AddListener(ServiceListener<Price<T>>* _listener)
+{
+	listeners.push_back(_listener);
+}
 
-	 for (auto& listener : listeners) {
-		 listener->ProcessAdd(_data);
-	 }
- }
+template<typename T>
+const vector<ServiceListener<Price<T>>*>& PricingService<T>::GetListeners() const
+{
+	return listeners;
+}
 
- template<typename T>
- void PricingService<T>::AddListener(ServiceListener<Price<T>>* listener)
- {
-	 listeners.push_back(listeners);
- }
+template<typename T>
+PricingConnector<T>* PricingService<T>::GetConnector()
+{
+	return connector;
+}
 
- template<typename T>
- const vector<ServiceListener<Price<T>>*>& PricingService<T>::GetListeners() const
- {
-	 return listeners;
- }
+/* Now defining the pricing connector
+* subscribing data to the pricing service.
+* When we subscribe, we fetch the data from th required path.
+* calculation will be use the data generated in data.txt.
+*/
+template<typename T>
+class PricingConnector : public Connector<Price<T>>
+{
+public:
+	// Ctor
+	PricingConnector(PricingService<T>* _service);
 
- template<typename T>
- PricingConnector<T>* PricingService<T>::GetConnector()
- {
-	 return connector;
- }
+	// Publish data to the Connector
+	void Publish(Price<T>& _data);
 
- /* Now defining the pricing connector
- * subscribing data to the pricing service.
- * When we subscribe, we fetch the data from th required path.
- */
+	// Subscribe data from the Connector
+	void Subscribe(ifstream& _data);
 
+private:
+	PricingService<T>* service;
+};
+
+template<typename T>
+PricingConnector<T>::PricingConnector(PricingService<T>* _service)
+{
+	service = _service;
+}
+
+// Publish the data: not implemented
+template<typename T>
+void PricingConnector<T>::Publish(Price<T>& _data) {}
+
+// Core function: reading from "data.txt"
+// and process the data.
+template<typename T>
+void PricingConnector<T>::Subscribe(ifstream& _data)
+{
+	string line;
+	while (getline(_data, line))
+	{
+		auto cells = lineToCells(line);
+		
+
+		// fetch the corresponding data features
+		string _productId = cells[0];
+		double bid_price = StringToPrice(cells[1]);
+		double offer_price = StringToPrice(cells[2]);
+		double mid_price = (bid_price + offer_price) / 2.0;
+		double spread = offer_price - bid_price;
+		T _product = FetchBond(_productId);
+
+		Price<T> _price(_product, mid_price, spread);
+
+		// update the generated price Data to the service.
+		std::cout << bid_price << ", " << offer_price << std::endl;
+		service->OnMessage(_price);
+	}
+}
 
 
 #endif
