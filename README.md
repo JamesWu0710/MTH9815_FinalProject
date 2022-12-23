@@ -3,6 +3,8 @@ MTH9815 Software Engineering Final Project: BondTradingSystem
 
 Author: Chengxun James Wu
 
+# Project Design Idea
+
 # Description of Project Requirements
 
 # How to run the codes?
