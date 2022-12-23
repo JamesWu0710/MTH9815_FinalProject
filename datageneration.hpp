@@ -80,7 +80,7 @@ void GenerateAllPrices() {
 	const string save_path("prices.txt");
 	ofstream file(save_path);
 
-	const int orderSize = 1000;
+	const int orderSize = 10000;
 	for (const auto& [mat, bond] : bondMap) {
 		std::cout << "Generating prices for security " << bond.first << " ...\n";
 		GenerateProductPrice(bond.first, orderSize, file);
@@ -126,7 +126,7 @@ void GenerateAllMarketData() {
 	const string save_path("marketdata.txt");
 	ofstream file(save_path);
 
-	const int orderSize = 1000;
+	const int orderSize = 10000;
 	for (const auto& [mat, bond] : bondMap) {
 		std::cout << "Generating market data for security " << bond.first << " ...\n";
 		GenerateProductMarketData(bond.first, orderSize, file);
