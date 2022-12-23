@@ -4,6 +4,7 @@
 /* GUIservice.hpp
 * the GUI-related information
 * containing data types and different services
+* Transplanted other codes provided by professor
 * Author: James Wu
 */
 

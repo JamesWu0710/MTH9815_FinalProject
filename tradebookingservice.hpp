@@ -3,6 +3,7 @@
  * Defines the data types and Service for trade booking.
  *
  * @author Breman Thuraisingham
+ * @Coauthor James Wu
  */
 #ifndef TRADE_BOOKING_SERVICE_HPP
 #define TRADE_BOOKING_SERVICE_HPP

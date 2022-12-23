@@ -35,7 +35,7 @@ specified by the header files.
 
 int main() {
 	std::cout << GetTimeStamp() << " Program Started. " << std::endl;
-	//initialize(); // run if there are no existing data txts
+	initialize(); // run if there are no existing data txts
 	std::cout << GetTimeStamp() << " Data Prepared." << std::endl;
 
 	// 1) Service initialization. Take T as bonds.
@@ -89,28 +89,36 @@ int main() {
 	BondInquiryService.AddListener(histInquiryService.GetServiceListener());
 	std::cout << GetTimeStamp() << " Services linked successfully." << std::endl;
 
-	// 4) Recording into local files.
-	std::cout << GetTimeStamp() << " Processing Price data..." << std::endl;
+	// preload data
+	std::cout << GetTimeStamp() << " Linking with data..." << std::endl;
 	ifstream priceData("prices.txt");
+	ifstream tradeData("trades.txt");
+	ifstream inquiryData("inquiries.txt");
+	ifstream marketData("marketdata.txt");
+	std::cout << GetTimeStamp() << " Data linked successfully. Start data processing..." << std::endl;
+
+	// 4) Recording into local files.
+	// 4.1 reading prices, update streaming data
+	std::cout << GetTimeStamp() << " Processing Price data..." << std::endl;
 	BondPricingService.GetConnector()->Subscribe(priceData);
 	std::cout << GetTimeStamp() << " Price data processed successfully!" << std::endl;
 
+	// 4.2 reading trade data, update position and risk
 	std::cout << GetTimeStamp() << " Processing Trade data... " << std::endl;
-	ifstream tradeData("trades.txt");
 	BondTradeBookingService.GetConnector()->Subscribe(tradeData);
 	std::cout << GetTimeStamp() << " Trade data processed successfully!" << std::endl;
 
+	// 4.3 reading market data, update executions
 	std::cout << GetTimeStamp() << " Processing Market data..." << std::endl;
-	ifstream marketData("marketdata.txt");
 	BondMarketDataService.GetConnector()->Subscribe(marketData);
 	std::cout << GetTimeStamp() << " Market data processed successfully!" << std::endl;
 
+	// 4.4 reading inquiry data, update all inquiries
 	std::cout << GetTimeStamp() << " Processing inquiry data..." << std::endl;
-	ifstream inquiryData("inquiries.txt");
 	BondInquiryService.GetConnector()->Subscribe(inquiryData);
 	std::cout << GetTimeStamp() << " Inquiry data processed successfully!" << std::endl;
 
+	// 4.5 Finished!
 	std::cout << GetTimeStamp() << " Finished the tasks, now exiting the program..." << std::endl;
 	system("pause");
-	return 0;
 }

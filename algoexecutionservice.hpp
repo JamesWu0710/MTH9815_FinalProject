@@ -1,9 +1,13 @@
 #ifndef ALGO_EXECUTION_SERVICE_HPP
 #define ALGO_EXECUTION_SERVICE_HPP
 
- /*The algo execution service implementation
- Moved the original implementation of execution orders (provided by Breman) here*/
-
+ /**
+  * algoexecutionservice.hpp
+  * Defines the data types and Service for executions.
+  * Moved the original implementation of execution orders (provided by Breman)
+  * @author Breman Thuraisingham
+  * @coauthor James Wu
+  */
 #include <string>
 #include "soa.hpp"
 #include "marketdataservice.hpp"
@@ -63,7 +67,7 @@ private:
 	string orderId;
 	OrderType orderType;
 	double price;
-	double visibleQuantity;
+	long visibleQuantity;
 	double hiddenQuantity;
 	string parentOrderId;
 	bool isChildOrder;
@@ -83,8 +87,8 @@ ExecutionOrder<T>::ExecutionOrder(const T& _product, PricingSide _side, string _
 	orderId = _orderId;
 	orderType = _orderType;
 	price = _price;
-	visibleQuantity = _visibleQuantity;
-	hiddenQuantity = _hiddenQuantity;
+	visibleQuantity = static_cast<long>(_visibleQuantity);
+	hiddenQuantity = static_cast<long>(_hiddenQuantity);
 	parentOrderId = _parentOrderId;
 	isChildOrder = _isChildOrder;
 }
@@ -169,7 +173,9 @@ vector<string> ExecutionOrder<T>::ToStrings() const
 	
 	string _price = PriceToString(price);
 	string _visibleQuantity = to_string(visibleQuantity);
+	_visibleQuantity = _visibleQuantity.substr(0, _visibleQuantity.find(".") + 1);
 	string _hiddenQuantity = to_string(hiddenQuantity);
+	_hiddenQuantity = _hiddenQuantity.substr(0, _hiddenQuantity.find(".") + 1);
 	string _parentOrderId = parentOrderId;
 	string _isChildOrder = isChildOrder ? "YES" : "NO";
 
@@ -339,7 +345,7 @@ void AlgoExecutionService<T>::AlgoOrderExecution(OrderBook<T>& _orderBook)
 		}
 		executionCount++;
 
-		AlgoExecution<T> algoOrder(_product, _side, _orderId, MARKET, _price, _quantity, 0, "", false);
+		AlgoExecution<T> algoOrder(_product, _side, _orderId, MARKET, _price, _quantity, 0, "PARENT_ORDER_ID", false);
 		algoExecutions[_productId] = algoOrder;
 
 		// notify the listners of the execution
@@ -388,11 +394,10 @@ void AlgoExecutionToMarketDataListener<T>::ProcessAdd(OrderBook<T>& _data)
 }
 
 // do nothing for these methods (not required)
-
 template<typename T>
 void AlgoExecutionToMarketDataListener<T>::ProcessRemove(OrderBook<T>& _data) {}
 
 template<typename T>
 void AlgoExecutionToMarketDataListener<T>::ProcessUpdate(OrderBook<T>& _data) {}
 
-#endif //!AL
+#endif //!ALGO_EXECUTION_SERVICE_HPP

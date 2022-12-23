@@ -2,7 +2,8 @@
  * marketdataservice.hpp
  * Defines the data types and Service for order book market data.
  *
- * @author Breman Thuraisingham0
+ * @author Breman Thuraisingham
+ * @coauthor James Wu
  */
 #ifndef MARKET_DATA_SERVICE_HPP
 #define MARKET_DATA_SERVICE_HPP
@@ -218,7 +219,7 @@ const BidOffer OrderBook<T>::GetBidOffer() const {
 	Order highest_bid(bidStack[0]);
 	double h_bid_price = highest_bid.GetPrice();
 	for (auto i = 1; i < bidStack.size(); i++) {
-		auto curr_bid = bidStack[i];
+		Order curr_bid = bidStack[i];
 		if (curr_bid.GetPrice() > h_bid_price) {
 			highest_bid = curr_bid;
 			h_bid_price = highest_bid.GetPrice();
@@ -228,8 +229,8 @@ const BidOffer OrderBook<T>::GetBidOffer() const {
 	Order lowest_offer(offerStack[0]);
 	double l_offer_price = lowest_offer.GetPrice();
 	for (auto i = 1; i < offerStack.size(); i++) {
-		auto curr_offer = offerStack[i];
-		if (curr_offer.GetPrice() > l_offer_price) {
+		Order curr_offer = offerStack[i];
+		if (curr_offer.GetPrice() < l_offer_price) {
 			lowest_offer = curr_offer;
 			l_offer_price = lowest_offer.GetPrice();
 		}
@@ -398,13 +399,7 @@ void MarketDataConnector<T>::Subscribe(ifstream& _data)
 
 		// convert string to SIDE
 		// assume no ill-shaped inputs
-		PricingSide side;
-		if (_cells[3] == "BID") {
-			side = BID;
-		}
-		else if (_cells[3] == "OFFER") {
-			side = OFFER;
-		}
+		PricingSide side = _cells[3] == "BID" ? BID : OFFER;
 
 		// generate order
 		Order order(_price, _quantity, side);

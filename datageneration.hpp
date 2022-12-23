@@ -1,5 +1,5 @@
-#ifndef data_generation_hpp
-#define data_generation_hpp
+#ifndef DATA_GENERATION_HPP
+#define DATA_GENERATION_HPP
 
 // datageneration_hpp
 // The file to generate price data
@@ -80,7 +80,7 @@ void GenerateAllPrices() {
 	const string save_path("prices.txt");
 	ofstream file(save_path);
 
-	const int orderSize = 10000;
+	const int orderSize = 1000;
 	for (const auto& [mat, bond] : bondMap) {
 		std::cout << "Generating prices for security " << bond.first << " ...\n";
 		GenerateProductPrice(bond.first, orderSize, file);
@@ -126,7 +126,7 @@ void GenerateAllMarketData() {
 	const string save_path("marketdata.txt");
 	ofstream file(save_path);
 
-	const int orderSize = 10000;
+	const int orderSize = 1000;
 	for (const auto& [mat, bond] : bondMap) {
 		std::cout << "Generating market data for security " << bond.first << " ...\n";
 		GenerateProductMarketData(bond.first, orderSize, file);
@@ -134,7 +134,10 @@ void GenerateAllMarketData() {
 }
 
 // generate the trade data
-// generaet price between 99 and 101, we use some randomness
+// generate price between 99 and 101, we use some randomness
+// Randomly place order in TRSY1,2,3 books
+// for each security, volume alternates in 10M to 50M periods.
+// for each security, alternate between BUY and SELL
 void GenerateProductTradeData(string _id, int _size, ofstream& file) {
 	double mintick = 1.0 / 256.0;
 	vector<int> volumeVec{ 10000000,20000000,30000000,40000000,50000000 };
@@ -148,7 +151,8 @@ void GenerateProductTradeData(string _id, int _size, ofstream& file) {
 		Side _side = (i % 2) ? BUY : SELL;
 		string _string_side = _side == BUY ? "BUY" : "SELL";
 		int _volume = volumeVec[i % 5];
-		string _book_name = "TRSY" + to_string(i % 3 + 1);
+		int _market = (int)(d(gen) * 3) % 3 + 1;
+		string _book_name = "TRSY" + to_string(_market);
 		double _price = 99.0 + mintick * (double)_n;
 		string trading_id = GenerateTradingId(12);
 		file << _id << "," << trading_id << "," << PriceToString(_price) << "," << _book_name << "," << _volume << "," << _string_side << std::endl;
@@ -195,4 +199,4 @@ void GenerateAllInquiryData() {
 	}
 }
 
-#endif // !data_generation_hpp
+#endif // !DATA_GENERATION_HPP

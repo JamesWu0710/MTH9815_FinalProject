@@ -212,8 +212,7 @@ void PositionService<T>::AddTrade(const Trade<T>& _trade)
 	Position<T> _positionTo(_product);
 	if (_side == BUY) {
 		_positionTo.AddPosition(_book, _quantity);
-	}
-	if (_side == SELL) {
+	}else if (_side == SELL) {
 		_positionTo.AddPosition(_book, -_quantity);
 	}
 	
