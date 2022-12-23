@@ -135,7 +135,7 @@ const string& BucketedSector<T>::GetName() const
 	return name;
 }
 
-// Implementing the RiskService...
+// Implementing the RiskService
 /**
 * Pre-declearations to avoid errors.
 */
@@ -245,7 +245,7 @@ template<typename T>
 const PV01<BucketedSector<T>>& RiskService<T>::GetBucketedRisk(const BucketedSector<T>& _sector) const
 {
 	BucketedSector<T> _product = _sector;
-	double _pv01 = 0;
+	double _pv01 = 0.0;
 	long _quantity = 1;
 
 	vector<T>& _products = _sector.GetProducts();

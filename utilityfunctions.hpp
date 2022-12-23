@@ -177,7 +177,7 @@ string GenerateTradingId(int length = 12)
 
 // utility function to separate the line
 // deliminator is ","
-std::vector<string> lineToCells(string line) {
+std::vector<string> LineToCells(string line) {
 	stringstream lineStream(line);
 	string cell;
 	vector<string> cells;
