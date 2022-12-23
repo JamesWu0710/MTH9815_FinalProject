@@ -7,6 +7,7 @@ Author: Chengxun James Wu
 This part is adopted from Breman's project requirements.
 
 - Develop a bond trading system for US Treasuries with seven securities: 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, and 30Y. Look up the CUSIPS, coupons, and maturity dates for each security. Ticker is T.
+- The securities each have a unique id: 91282CFX4, 91282CFW6, 91282CFZ9, 91282CFY2, 91282CFV8, 912810TM0, 912810TL2 standing for 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, and 30Y.
 - The idea is to connection different processes: **Listeners, Connectors that Subscribe and Publish**. We have a new definition of a Service in soa.hpp, with the concept of a ServiceListener and Connector also defined. A ServiceListener is a listener to events on the service where data is added to the service, updated on the service, or removed from the service. A Connector is a class that flows data into the Service from some connectivity source (e.g. a socket, file, etc) via the Service.OnMessage() method. The Publish() method on the Connector publishes data to the connectivity source and can be invoked from a Service. Some Connectors are publish-only that do not invoke Service.OnMessage(). Some Connectors are subscribe-only where Publish() does nothing. Other Connectors can do both publish and subscribe.
 
 # Project Design Idea
@@ -101,4 +102,5 @@ This part will list all the files and the classes within. All the services are k
 
 # Notes:
 - All the services above are in the form of a key-value pair: **{product id: corresponding class object}**.
+- The information of bond yields (in calculating PV01) and coupons come from https://www.cnbc.com/quotes. For example: https://www.cnbc.com/quotes/US3Y gives the information of the 3 year bond.
 - The timing function localtime() does not seem to work well with g++ on Windows (maybe --deprecated?). Using Visual Studio with pre-processor _CRT_SECURE_NO_WARNINGS can help solve this problem. Anyway, it's a minor case compared to the whole project :-)
