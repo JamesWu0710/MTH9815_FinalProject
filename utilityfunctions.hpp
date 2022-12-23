@@ -1,9 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 
-#ifndef utilityfunctions_hpp
-#define utilityfunctions_hpp
-
-
+#ifndef UTILITY_FUNCTIONS_HPP
+#define UTILITY_FUNCTIONS_HPP
 
 #include <iostream>
 #include <string>
@@ -20,10 +18,6 @@
 using namespace std;
 using namespace boost::gregorian;
 
-
-// utility function to generate uniform random
-// LCG
-// use seed (in practice will be the current time)
 double StringToPrice(const string& str_price) {
 	auto separate_pos = str_price.find('-');
 
@@ -194,4 +188,4 @@ std::vector<string> lineToCells(string line) {
 	return cells;
 }
 
-#endif // !utilityfunctions_hpp
+#endif // !UTILITY_FUNCTIONS_HPP

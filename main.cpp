@@ -35,7 +35,7 @@ specified by the header files.
 
 int main() {
 	std::cout << GetTimeStamp() << " Program Started. " << std::endl;
-	initialize(); // run if there are no existing data txts
+	//initialize(); // run if there are no existing data txts
 	std::cout << GetTimeStamp() << " Data Prepared." << std::endl;
 
 	// 1) Service initialization. Take T as bonds.
