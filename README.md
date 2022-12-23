@@ -14,7 +14,7 @@ This part is adopted from Breman's project requirements.
 - Regarding data, we generate the data according to the rules defined in the project requirements. This is mainly done in datageneration.hpp, and the input data can be generated if we call the Initialize method in the main file.
 - **How to connect different services?** Following the guidelines, I adopt the method of adding listeners from one service to another. For example, I have AlgoExecutionToExecutionListener that specifies that: AlgoExecution sends information to Execution, which forms the connections between two services. Similar examples can also be found in other services. This linking design is also instrumental in the project.
 - **How to read and store data?** Following the guidelines, I adopt the Publish and Subscribe with connectors outlined in the project descriptions. For example, PricingService uses a Connector to subscribe data from the stored prices information. After reading the data, the connector calls the *OnMessage* method of the corresponding service to apply actions on the data obtained to pass into the system.
-- The codes follow the original codes provided by the Professor.
+- The codes follow the original codes provided by the Professor with some discretionary additions (like the ToStrings method that converts the classes into strings).
 
 
 # How to run the codes?
